@@ -90,6 +90,8 @@ export const getAllChildren = async (req, res) => {
     }
 };
 
+
+
 export const getProductsByCategory = async (req, res) => {
     try {
         const { id } = req.params;
@@ -104,7 +106,7 @@ export const getProductsByCategory = async (req, res) => {
             }
         });
         if (category.subcategoriesId.length === 0) {
-            products = await findProductsByCategories([id]);
+            products = await findProductsByCategories([id], req.query);
         } else {
             const categoryIds = category.subcategoriesId.flatMap(sub => {
                 if (sub.subcategoriesId.length === 0) return sub._id;
@@ -114,22 +116,31 @@ export const getProductsByCategory = async (req, res) => {
                 });
             });
 
-            products = await findProductsByCategories([...categoryIds, id]);
+            products = await findProductsByCategories([...categoryIds], req.query);
         }
         return res.status(StatusCodes.OK).json(products);
     } catch (error) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
     }
 };
-const findProductsByCategories = async (categoryIds) => {
-    return await Product.find({ category: { $in: categoryIds } })
+const findProductsByCategories = async (categoryIds, query) => {
+    const page = parseInt(query.page) - 1 || 0;
+    const limit = parseInt(query.limit) || 16;
+    const search = query.search || '';
+    // const colors = query.colors ? query.colors.split(',') : ['66ce6df95f1e96fe6c896fef'];
+    // console.log(colors);
+    
+    const products = await Product.find({
+        category: { $in: categoryIds },
+        name: { $regex: search, $options: "i" },
+        style : { $in:["2","3","4","1"] },
+    })
         .populate('category')
         .populate({
             path: 'attributes',
             populate: [
                 {
                     path: 'color',
-                    select: 'color'
                 },
                 {
                     path: 'variants',
@@ -140,200 +151,22 @@ const findProductsByCategories = async (categoryIds) => {
                 }
             ]
         })
+        .skip(page * limit)
+        .limit(limit)
         .lean();
+
+    const totalProducts = await Product.countDocuments({ category: { $in: categoryIds } });
+    const totalPage = Math.ceil(totalProducts / limit);
+
+    return {
+        products,
+        page: page + 1,
+        limit,
+        totalPage
+    };
 };
 
 
-// export const getProductsByCategory = async (req, res) => {
-
-//     try {
-//         const { id } = req.params;
-//         let products = [];
-//         const category = await Category.findById(id).populate({ path: "subcategoriesId", populate: "subcategoriesId" });
-//         if (category.subcategoriesId.length <= 0) {
-//             products = await findProductsByCategories(id)
-//         }
-
-
-//         if (category.subcategoriesId.length > 0) {
-//             const categoryIds = category.subcategoriesId.map((item) => item._id)
-//             const categorysub = category.subcategoriesId.map((item) => item.subcategoriesId)
-
-
-//             if (categoryIds.length > 0) {
-//                 const categoryIds = categorysub.flatMap((item) => item.map((value) => value._id))
-
-//                 products = await findProductsByCategories(categoryIds)
-//             } else {
-//                 products = await findProductsByCategories(categoryIds)
-//             }
-
-//             products = await findProductsByCategories(categoryIds)
-//         }
-
-//         return res.status(StatusCodes.OK).json(products);
-//     } catch (error) {
-//         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
-//     }
-// };
-
-// const findProductsByCategories = async (categoryIds) => {
-//     return await Product.find({ category: { $in: categoryIds } })
-//         .populate('category')
-//         .populate({
-//             path: 'attributes',
-//             populate: {
-//                 path: 'sizes'
-//             }
-//         }).lean();
-// };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// export const getProductsByCategory = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         let products = [];
-
-//         const categoryItems = await CategoryItem.find({ parentCategoryId: id }).populate("subcategories").lean();
-//         const categoryItem = await CategoryItem.findById(id).populate("subcategories").lean();
-
-//         const categoryIds = categoryItems.flatMap(item => item.subcategories.map(subcat => subcat._id));
-
-//         if (categoryItems.length > 0) {
-//             if (categoryIds.length > 0) {
-//                 products = await findProductsByCategories(categoryIds);
-//             } else {
-//                 const idCategories = categoryItems.map(item => item._id);
-//                 products = await findProductsByCategories(idCategories);
-//             }
-//         } else if (categoryItem) {
-//             const categoryIds = categoryItem.subcategories.map(item => item._id);
-//             if (categoryIds.length > 0) {
-//                 products = await findProductsByCategories(categoryIds);
-//             } else {
-//                 products = await findProductsByCategories([id]);
-//             }
-//         } else {
-//             products = await findProductsByCategories([id]);
-//         }
-
-//         return res.status(StatusCodes.OK).json(products);
-
-//     } catch (error) {
-//         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
-//     }
-// };
-
-// const findProductsByCategories = async (categoryIds) => {
-//     return await Product.find({ category: { $in: categoryIds } })
-//         .populate('category')
-//         .populate({
-//             path: 'attributes',
-//             populate: {
-//                 path: 'sizes'
-//             }
-//         }).lean();
-// };
-
-// export const getCategoryById = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         let products;
-
-//         const categoryItems = await CategoryItem.find({ parentCategoryId: id }).populate("subcategories").lean();
-//         const categoryItem = await CategoryItem.findById(id).populate("subcategories").lean();
-//         if (categoryItems.length > 0) {
-//             // Lấy tất cả _id từ các subcategories
-//             const categoryIds = categoryItems.flatMap(item => item.subcategories.map(subcat => subcat._id));
-
-//             if (categoryIds.length <= 0) {
-//                 const idCategories = categoryItems.map((item) => item._id);
-//                 products = await Product.find({ category: idCategories })
-//                     .populate('category')
-//                     .populate({
-//                         path: 'attributes',
-//                         populate: {
-//                             path: 'sizes'
-//                         }
-//                     }).lean();
-//             } else {
-//                 // Tìm tất cả sản phẩm thuộc các danh mục con
-//                 products = await Product.find({ category: { $in: categoryIds } })
-//                     .populate('category')
-//                     .populate({
-//                         path: 'attributes',
-//                         populate: {
-//                             path: 'sizes'
-//                         }
-//                     }).lean();
-//             }
-//         } else if (categoryItem) {
-//             const categoryIds = categoryItem.subcategories.map((item) => (item._id))
-
-//             if (categoryIds.length <= 0) {
-//                 products = await Product.find({ category: id })
-//                     .populate('category')
-//                     .populate({
-//                         path: 'attributes',
-//                         populate: {
-//                             path: 'sizes'
-//                         }
-//                     }).lean();
-//             } else {
-//                 products = await Product.find({ category: { $in: categoryIds } })
-//                     .populate('category')
-//                     .populate({
-//                         path: 'attributes',
-//                         populate: {
-//                             path: 'sizes'
-//                         }
-//                     }).lean();
-
-//             }
-
-//         }
-//         else {
-//             // Nếu không có subcategories, lấy sản phẩm trực tiếp từ categoryId
-//             products = await Product.find({ category: id })
-//                 .populate('category')
-//                 .populate({
-//                     path: 'attributes',
-//                     populate: {
-//                         path: 'sizes'
-//                     }
-//                 }).lean();
-//         }
-
-//         // Trả về kết quả
-//         return res.status(StatusCodes.OK).json(products);
-
-//     } catch (error) {
-//         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
-//     }
-// };
 
 
 

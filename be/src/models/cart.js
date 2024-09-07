@@ -7,9 +7,15 @@ const cartItemSchema = new Schema(
             ref: "Product",
             required: true,
         },
-        colorId: {
-            type: String,
-            // required: true,
+        variantId: {
+            type: Schema.Types.ObjectId,
+            ref: "ValueAttribute",
+            required: true,
+        },
+        attributeId: {
+            type: Schema.Types.ObjectId,
+            ref: "Attribute",
+            required: true,
         },
         quantity: {
             type: Number,
@@ -28,7 +34,7 @@ const cartItemSchema = new Schema(
             type: String,
             // required: true,
         },
-        image: [],
+        images: [],
         slug: {
             type: String,
             required: true,
@@ -37,6 +43,14 @@ const cartItemSchema = new Schema(
             type: String,
             required: true,
         },
+        status: {
+            type: Boolean,
+            required: true,
+        },
+        discount: {
+            type: Number,
+            required: true,
+        }
     },
     { _id: false } // Không tạo _id cho mỗi item trong mảng products
 );

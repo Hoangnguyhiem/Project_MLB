@@ -1,56 +1,76 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { message } from 'antd'
 import axios from 'axios'
+import { useProductMutations } from '@/hooks/useProductMutations';
 
 import { Link } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 
 
 const CartPage = () => {
-
-    const [messageApi, contextHolder] = message.useMessage()
+    const { contextHolder, updateProductMutation, deleteProductMutation } = useProductMutations();
+    const [clickUpdate, setClickUpdate] = useState<boolean>(false)
+    const [variant, setVariant] = useState<any>()
+    const [attribute, setAttribute] = useState<any>()
+    const [quantity, setQuantity] = useState<any>()
+    const [products, setProducts] = useState<any>()
+    const [variantDefault, setVariantDefault] = useState<any>()
+    const [attributeDefault, setAttributeDefault] = useState<any>()
+    if (quantity <= 0) setQuantity(1)
     const { userId } = useParams()
 
-
+    // Lấy tất cả sản phẩm theo id người dùng
     const { data: carts } = useQuery({
-        queryKey: ['carts', userId],
+        queryKey: ['carts'],
         queryFn: () => {
             return axios.get(`http://localhost:8080/api/carts/${userId}`)
         }
     })
-    console.log(carts);
+    
+    // Xóa sản phẩm trong giỏ hàng
+    const handleDelete = (variantId: any) => {
+        deleteProductMutation.mutate({
+            userId, variantId
+        })
+    } 
 
-    const queryClient = useQueryClient()
-    const { mutate } = useMutation({
-        mutationFn: async (colorId: string) => {
-            try {
+    // Cập nhật sản phẩm trong giỏ hàng
+    const handleUpdate = () => {
+        const { _id: attributeId, images, color: colorDetail } = attribute
+        const { _id: variantId, price, size: sizeDetail, slug, status, discount } = variant
+        const color = colorDetail.color
+        const size = sizeDetail.name
+        const name = products?.productId?.name
+        const productId = products?.productId?._id
 
-                axios.post(`http://localhost:8080/api/carts/remove`, { userId, colorId })
-            } catch (error) {
-                throw new Error(`Có lỗi xảy ra, xin thử lại sau`)
-            }
-        },
-        onSuccess: () => {
-            messageApi.open({
-                type: 'success',
-                content: 'Xóa thành công',
-            }),
-                queryClient.invalidateQueries({
-                    queryKey: ['carts', userId],
-                }),
-                queryClient.refetchQueries({
-                    queryKey: ['carts', userId],
-                })
-        },
-        onError: (error) => {
-            messageApi.open({
-                type: 'error',
-                content: error.message,
-            })
+        updateProductMutation.mutate({
+            userId, productId, variantDefault, attributeId, variantId, images, price, quantity, slug, status, color, size, name, discount
+        })
+        setClickUpdate(!clickUpdate)
+    }
+
+    // Thực hiện lưu trữ các data khi cập nhật sản phẩm trong giỏ hàng
+    const handleSubmitClick = useCallback((data: any) => {
+        setClickUpdate(!clickUpdate)
+        setProducts(data);
+        setAttribute(data?.attributeId);
+        setAttributeDefault(data?.attributeId);
+        setVariant(data?.variantId);
+        setVariantDefault(data?.variantId);
+        setQuantity(data?.quantity);
+    }, []);
+
+    useEffect(() => {
+        if (attribute?._id !== attributeDefault?._id) {
+            const data = attribute?.variants.find((item: any) => item?.stock > 0)
+            setVariant(data);
         }
-    })
+        else {
+            setVariant(variantDefault)
+        }
+    }, [attribute?._id])
 
     return (
         <main>
@@ -83,7 +103,7 @@ const CartPage = () => {
                                             <div className="w-[120px]">
                                                 <input className='absolute w-[20px] h-[20px]' type="checkbox" />
                                                 <div className="pt-[123.5%] bg-cover bg-center bg-no-repeat"
-                                                    style={{ backgroundImage: `url(${cart.image[0]})` }}
+                                                    style={{ backgroundImage: `url(${cart.images[0]})` }}
                                                 ></div>
                                             </div>
 
@@ -103,17 +123,17 @@ const CartPage = () => {
                                             </div>
 
                                             <div className="lg:hidden">
-                                                <a href="">
+                                                <button onClick={() => handleDelete(cart.variantId?._id) }>
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M13.9998 6L5.99988 14" stroke="black" strokeLinecap="square" strokeLinejoin="round"></path>
                                                         <path d="M6 6L13.9999 14" stroke="black" strokeLinecap="square" strokeLinejoin="round"></path>
                                                     </svg>
-                                                </a>
+                                                </button>
                                             </div>
                                         </div>
                                         <div className="flex justify-center items-center mt-[20px] w-[100%] lg:w-[156.5px] lg:flex-wrap *:font-[500] lg:mt-0">
-                                            <a href="" className='w-[100%] text-center border border-[#E8E8E8] rounded-[3px] text-[14px] py-[6px] px-[8px]'>Thay đổi tùy chọn</a>
-                                            <button onClick={() => { mutate(cart.colorId) }} className='hidden w-full text-center border border-[#E8E8E8] rounded-[3px] text-[14px] py-[6px] px-[8px] mt-[8px] lg:block'>Xóa</button>
+                                            <button onClick={() => handleSubmitClick(cart)} className='w-[100%] text-center border border-[#E8E8E8] rounded-[3px] text-[14px] py-[6px] px-[8px]'>Thay đổi tùy chọn</button>
+                                            <button onClick={() => handleDelete(cart.variantId?._id) } className='hidden w-full text-center border border-[#E8E8E8] rounded-[3px] text-[14px] py-[6px] px-[8px] mt-[8px] lg:block'>Xóa</button>
                                         </div>
                                     </div>
                                 </div>
@@ -154,6 +174,88 @@ const CartPage = () => {
                         </button>
                     </div>
                 </div>
+            </div>
+
+
+            <div className={`${clickUpdate ? "flex" : "hidden"} fixed z-10 flex-col top-0`}>
+                <div className="">
+                    <div className="fixed overflow-hidden rounded-[5px] bg-white z-20 flex top-[50%] translate-y-[-50%] left-[50%] translate-x-[-50%] max-w-[825px] w-[100%]">
+                        <div onClick={() => setClickUpdate(!clickUpdate)} className="absolute right-0 cursor-pointer p-[5px]">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                        </div>
+                        <div className="w-[38%]">
+                            <img src="" alt="" />
+                        </div>
+                        <div className="w-[62%] p-[24px]">
+                            <h2 className='mb-[5px] text-[20px] font-[400]'>MLB - Áo sweatshirt unisex cổ bẻ tay dài thời trang</h2>
+                            <div className="my-[20px] flex flex-wrap gap-1.5 justify-start">
+                                {products?.productId?.attributes.map((item: any) => (
+                                    <>
+                                        <input
+                                            className='hidden'
+                                            type="radio"
+                                            name="options1"
+                                            id={item._id}
+                                            value="1"
+                                            onChange={() => setAttribute(item)}
+                                            checked={attribute._id === item._id}
+
+                                        />
+                                        <label htmlFor={item._id} className={`${attribute._id === item._id ? "border-black" : ""} border-[1px] w-[64px]`}>
+                                            <img src={item.images[0]} alt="" />
+                                        </label>
+                                    </>
+
+                                ))}
+                            </div>
+                            {products?.productId?.attributes.map((item: any) => (
+                                <div key={item._id} className={`${attribute._id === item._id ? "flex" : "hidden"}`}>
+                                    {item.variants.map((value: any) => (
+                                        <div key={value._id} className={`flex flex-wrap *:text-[14px] *:justify-center *:items-center *:rounded-[18px] *:mr-[8px] *:px-[16px] *:py-[7.5px] *:cursor-pointer *:min-w-[65px] *:border-[#E8E8E8] *:border-[1px] *:border-solid *:font-[500]`}>
+                                            <>
+                                                <input
+                                                    className='hidden'
+                                                    type="radio"
+                                                    name="options1"
+                                                    id={value._id}
+                                                    value="1"
+                                                    onChange={() => setVariant(value)}
+                                                    checked={variant._id === value._id}
+
+                                                />
+                                                {value.stock === 0 ?
+                                                    <label htmlFor={value._id} className="flex pointer-events-none bg-[#F8F8F8] text-[#D0D0D0]">{value.size?.name}</label>
+                                                    :
+                                                    <label htmlFor={value._id} className={`${value._id == variant._id ? "bg-black text-white" : "bg-white text-black"} flex`}>{value.size?.name}</label>
+                                                }
+                                            </>
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+
+
+                            <div className="my-[24px]">
+                                <div className="border-[#E8E8E8] border-[1px] border-solid h-[48px] w-full flex justify-between *:justify-center">
+                                    <button onClick={() => setQuantity(quantity - 1)} className='flex items-center w-[48px]'>-</button>
+                                    <input className='pointer-events-none bg-transparent outline-none border-none w-[calc(100%-96px)] flex text-center text-[14.5px] font-[500]' min={1} max={10} type="number" name="" id="" value={quantity} />
+                                    <button onClick={() => setQuantity(quantity + 1)} className='flex items-center w-[48px]'>+</button>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-between *:font-[500] *:p-[12px] *:w-[49%] *:rounded-[3px]">
+                                <button onClick={() => setClickUpdate(!clickUpdate)} className='text-black bg-white border-[1px] border-black'>Hủy</button>
+                                <button onClick={() => (handleUpdate())} className='text-white  bg-black'>Cập nhật</button>
+                            </div>
+
+
+
+                        </div>
+                    </div>
+                </div>
+                <div className="block bg-black opacity-[0.7] fixed w-[100%] h-[100%] top-0 left-0 z-10"></div>
             </div>
         </main>
     )

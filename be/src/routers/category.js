@@ -14,7 +14,7 @@ import { uploadImage } from "../config/cloudinaryConfig";
 const router = Router();
 router.get("/collections", getAllParent);
 router.get("/subcollections", getAllChildren);
-router.post("/collections/:id", getProductsByCategory);
+router.get("/collections/:id", getProductsByCategory);
 
 
 router.get("/categories/:id", getCategoryById);

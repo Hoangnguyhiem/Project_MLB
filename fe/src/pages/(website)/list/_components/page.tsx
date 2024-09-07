@@ -17,13 +17,14 @@ const ProductsList = (props: Props) => {
         window.scrollTo(0, 0);
     }, []);
 
+    // Query lấy tất cả các sản phẩm theo danh mục
     const { data: products, isLoading, isError, error } = useQuery({
         queryKey: ['collections', id],
         queryFn: async () => {
-            return axios.post(`http://localhost:8080/api/collections/${id}`)
+            return axios.get(`http://localhost:8080/api/collections/${id}`)
         },
     })
-
+    
     const handleColorChange = (productIndex: number, item: any) => {
         setSelectedColors((prevColors) => ({
             ...prevColors,
@@ -36,8 +37,9 @@ const ProductsList = (props: Props) => {
     if (products?.data.length <= 0) return (<div>Dell co san pham nao</div>)
 
     return (
+        
         <div className="grid grid-cols-4 lg:grid-cols-12 lg:px-[15px] lg:gap-2 pc:px-[48px]">
-            {products?.data?.map((product: any, index: number) => {
+            {products?.data?.products.map((product: any, index: number) => {
                 const selectedColor = selectedColors[index] || product.attributes[0]; // Sử dụng màu mặc định nếu chưa chọn
                 return (
                     <div key={index} className="mb-[30px] col-span-2 relative lg:col-span-3 lg:mb-[40px]">

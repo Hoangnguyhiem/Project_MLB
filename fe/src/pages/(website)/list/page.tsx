@@ -93,7 +93,7 @@ const ListPage = (props: Props) => {
 
             <ProductsList />
 
-            <div className={`${filter ? "flex" : "hidden"} flex fixed max-w-[440px] w-[100%] top-0 right-0 z-20 bg-white flex-col justify-between h-full`}>
+            <div className={`${filter ? "flex" : "hidden"} fixed max-w-[440px] w-[100%] top-0 right-0 z-20 bg-white flex-col justify-between h-full`}>
                 <div className=" bg-white z-20 h-full">
                     <div className="flex justify-between items-center p-[8px_20px] shadow-sm">
                         <h2 className="text-lg font-semibold">Bộ lọc</h2>

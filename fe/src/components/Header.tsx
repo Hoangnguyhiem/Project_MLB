@@ -8,6 +8,18 @@ type Props = {
 
 const Header = ({ onClicks }: Props) => {
 
+  const [openCategories, setOpenCategories] = useState<boolean>(false); // State để theo dõi danh mục đang mở
+
+  const [openMenu, setOpenMenu] = useState(null); // State để theo dõi danh mục đang mở
+  const [openMenu1, setOpenMenu1] = useState(null); // State để theo dõi danh mục đang mở
+
+  const toggleMenu = (collectionId: any) => {
+    setOpenMenu(openMenu === collectionId ? null : collectionId);
+  };
+  const toggleMenu1 = (collectionId: any) => {
+    setOpenMenu1(openMenu1 === collectionId ? null : collectionId);
+  };
+
   // Lấy danh all danh muc
   const { data: collections } = useQuery({
     queryKey: ['collections'],
@@ -20,8 +32,6 @@ const Header = ({ onClicks }: Props) => {
   const capitalizeFirstLetter = (string: string) => {
     return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
   }
-
-
 
   const [userId, setUserId] = useState(null);
 
@@ -57,13 +67,13 @@ const Header = ({ onClicks }: Props) => {
       <div className="bg-black h-[42px] text-center flex">
         <span className='text-white justify-center flex m-auto text-[11px] font-[600] lg:text-[14px]'>Ưu đãi 5% cho dơnd hàng đầu tiên* | Nhập mã: MLBWELCOM</span>
       </div>
-      <header className='py-[8px] h-[57px] sticky top-0 z-10 bg-white lg:h-[64px]'>
+      <header className='py-[8px] h-[57px] sticky top-0 z-10 bg-white lg:h-[64px] mt-[0.1px]'>
         <div className="flex text-center justify-center h-[100%] px-[15px] pc:px-[48px]">
           <div className="flex">
-            <div className="flex items-center lg:hidden">
-              <a href="" className='w-[40px] h-[40px] flex justify-center items-center'>
+            <div onClick={() => setOpenCategories(!openCategories)} className="flex items-center lg:hidden">
+              <div className='w-[40px] h-[40px] flex justify-center items-center'>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect x="10" y="4" width="12" height="1" rx="0.5" fill="#000"></rect> <rect x="6" y="11" width="12" height="1" rx="0.5" fill="#000"></rect> <rect x="2" y="18" width="12" height="1" rx="0.5" fill="#000"></rect> </svg>
-              </a>
+              </div>
             </div>
             <div className="flex items-center">
               <Link to={`/`} className='lg:hidden w-[84px] h-[40px] flex justify-center items-center text-center'>
@@ -75,11 +85,74 @@ const Header = ({ onClicks }: Props) => {
             </div>
           </div>
 
-          <div className="items-center ml-[30px] hidden lg:flex">
-            <nav>
-              <ul className="flex text-[17px] font-[700]">
+          <div className={`${openCategories ? "" : "hidden lg:block"} fixed top-0 left-0 bg-white w-[100%] h-[100%] z-20 lg:static lg:items-center lg:ml-[30px]`}>
+            <div onClick={() => setOpenCategories(!openCategories)} className="lg:hidden p-[19px_20px]">
+              <svg xmlns="http://www.w3.org/2000/svg" width="19" height="20" viewBox="0 0 19 20" fill="none"><path d="M3 10L18.1667 10" stroke="black" stroke-width="1.2" stroke-linecap="square"></path><path d="M10 1.83325L1.83334 9.99992L10 18.1666" stroke="black" stroke-width="1.2" stroke-linecap="square"></path></svg>
+            </div>
+            <nav className="overflow-y-auto h-full lg:h-auto lg:overflow-hidden">
+              <ul className="px-[20px] lg:flex text-[14px] font-[500] lg:text-[17px] lg:font-[700]">
 
                 {collections?.data.map((collection: any) => (
+                  <li key={collection._id} className="group mb-[10px] lg:m-0">
+                    <h4 className="flex justify-between items-center w-[100%] py-[10px] lg:py-0">
+                      <Link onClick={() => setOpenCategories(!openCategories)} to={`collections/${collection._id}`} className="w-full flex h-full lg:h-auto hover:text-[#BB9244] lg:hover:border-b-[1px] lg:hover:border-b-black lg:py-[15px] lg:px-[18px]"> {collection.name}</Link>
+                      <span onClick={() => toggleMenu(collection._id)} className="lg:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                      </span>
+                    </h4>
+
+                    {collection.name == "GIẢM GIÁ" ? "" : (
+                      <div className={`${openMenu === collection._id ? 'block lg:hidden' : 'hidden'
+                        } lg:group-hover:block lg:hidden lg:absolute lg:py-[30px] lg:w-[100%] lg:top-[100%] lg:bg-white lg:left-0 lg:z-10`}>
+                        <div className="lg:flex lg:justify-center lg:max-w-[1200px] lg:m-[0_auto]">
+                          <ul className={` p-[15px_0px_15px_15px] ml-[15px] mt-[15px] lg:p-0 lg:m-0 lg:flex lg:min-w-[700px] lg:*:text-[14px]`}>
+                            {collection.subcategoriesId.map((collection: any, index: any) => (
+                              <li key={collection._id} className={`${index == 0 ? "" : "lg:pl-[40px]"} lg:block lg:text-left`}>
+                                <h4 className="flex justify-between items-center w-[100%] py-[10px] lg:py-0">
+                                  <Link onClick={() => setOpenCategories(!openCategories)} to={`collections/${collection._id}`} className="w-full flex lg:mb-[12px]">
+                                    {collection.name}
+                                  </Link>
+                                  <span onClick={() => toggleMenu1(collection._id)} className="lg:hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                  </span>
+                                </h4>
+                                <ul className={`${openMenu1 === collection._id ? 'block lg:hidden' : 'hidden'} p-[15px_0px_15px_15px] ml-[15px] mt-[15px] lg:p-0 lg:m-0 lg:block lg:*:font-[500] lg:*:text-[#787878]`}>
+
+                                  {collection.subcategoriesId.map((collection: any) => (
+                                    <li key={collection._id} className="flex py-[10px] lg:p-0 lg:mt-[4px]">
+                                      <Link onClick={() => setOpenCategories(!openCategories)} to={`collections/${collection._id}`} className="w-full flex">
+                                        {capitalizeFirstLetter(collection.name)}
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </li>
+
+                            ))}
+                          </ul>
+                          <div className="banner-submenu hidden lg:block pl-[45px] ml-[45px] mx-w-[355px] border-l-[1px] border-l-[#eeeeee]">
+                            <img className="" alt="QUẦN ÁO|APPAREL" width="309" height="309" src={collection.image} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </li>
+                ))}
+
+
+
+
+
+
+
+
+
+
+                {/* {collections?.data.map((collection: any) => (
                   <li key={collection._id} className="hover">
                     <Link to={`collections/${collection._id}`} className="hover:text-[#BB9244] hover:border-b-[1px] hover:border-b-black active:text-[#BB9244] active:border-b-[1px] active:border-b-black py-[15px] px-[18px]"> {collection.name}</Link>
                     {collection.name == "GIẢM GIÁ" ? "" : (
@@ -112,8 +185,7 @@ const Header = ({ onClicks }: Props) => {
                       </div>
                     )}
                   </li>
-
-                ))}
+                ))} */}
               </ul>
             </nav>
           </div>

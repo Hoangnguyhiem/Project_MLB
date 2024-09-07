@@ -49,7 +49,6 @@ export const getAllProducts = async (req, res) => {
                 populate: [
                     {
                         path: 'color',
-                        select: 'color'
                     },
                     {
                         path: 'variants',
@@ -77,7 +76,6 @@ export const getProductById = async (req, res) => {
                 populate: [
                     {
                         path: 'color',
-                        select: 'color'
                     },
                     {
                         path: 'variants',

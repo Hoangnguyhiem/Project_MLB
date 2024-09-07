@@ -13,8 +13,8 @@ const DetailPage = ({ onClicks }: Props) => {
   const queryClient = useQueryClient()
   const [messageApi, contextHolder] = message.useMessage()
 
-  const [quantity, setQuantity] = useState(1)
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [quantity, setQuantity] = useState<number>(1)
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
 
   const [attribute, setAttribute] = useState<any>({});
   const [variant, setVariant] = useState<any>({});
@@ -38,8 +38,6 @@ const DetailPage = ({ onClicks }: Props) => {
     }
   })
 
-  console.log(attribute);
-  
 
   // Tự động chọn size đầu tiên của màu được chọn
   useEffect(() => {
@@ -108,17 +106,27 @@ const DetailPage = ({ onClicks }: Props) => {
 
   })
 
-  const { _id: colorId, price, size, slug, status, discount } = variant
+  // Lấy thông tin sản phẩm để lưu vào giỏ hàng
+  const { _id: variantId, price, size: sizeDetail, slug, status, discount } = variant
+  console.log(variant);
+  
+  const { _id: attributeId, color: colorDetail, images } = attribute
+  console.log(attribute);
+  
   const name = data?.data.name
-  const { color, image } = attribute
+  const color  = colorDetail?.color
+  const size = sizeDetail?.name
+  // console.log(size);
+  
 
 
+  // Submit thêm thông tin vào giỏ hàng
   const onSubmitCart = () => {
-    mutate({ colorId, productId, color, image, price, size, name, quantity, slug } as any)
+    mutate({ productId,variantId, attributeId, price, size, slug, status, discount, color, images, name, quantity } as any)
   }
 
   const onSubmit = () => {
-    localStorage.setItem("buy", JSON.stringify({ attribute, variant, quantity }))
+    // localStorage.setItem("buy", JSON.stringify({ attribute, variant, quantity }))
   }
 
   // Dot của slide
@@ -289,7 +297,7 @@ const DetailPage = ({ onClicks }: Props) => {
                           value="1"
                           onChange={() => setAttribute(item)}
                         />
-                        <label data-tab={item.color?.color} htmlFor={item.color?.color} key={index + 1} className={`${attribute.color?.color === item.color?.color ? "border-black" : ""} after relative w-[42px] h-[42px] rounded-[50%] border-[1px] border-soli flex justify-center text-center`}>
+                        <label data-tab={item.color?.color} htmlFor={item.color?.color} key={index + 1} className={`${attribute.color?.color === item.color?.color ? "border-black" : ""} after relative w-[42px] h-[42px] rounded-[50%] border-[1px] border-solid flex justify-center text-center`}>
                           <div className="w-[40px] h-[40px] rounded-[50%] border-[5px] border-solid border-white" style={{ backgroundImage: `url('${item.color?.color}')` }}></div>
                         </label>
                       </>
@@ -338,7 +346,7 @@ const DetailPage = ({ onClicks }: Props) => {
                 <div className="my-[24px]">
                   <div className="border-[#E8E8E8] border-[1px] border-solid h-[48px] w-full flex justify-between *:justify-center">
                     <button onClick={() => setQuantity(quantity - 1)} className='flex items-center w-[48px]'>-</button>
-                    <input className='bg-transparent outline-none border-none w-[calc(100%-96px)] flex text-center text-[14.5px] font-[500]' min={1} max={10} type="number" value={quantity} name="" id="" />
+                    <input className='pointer-events-none bg-transparent outline-none border-none w-[calc(100%-96px)] flex text-center text-[14.5px] font-[500]' min={1} max={10} type="number" value={quantity} name="" id="" />
                     <button onClick={() => setQuantity(quantity + 1)} className='flex items-center w-[48px]'>+</button>
                   </div>
                 </div>
