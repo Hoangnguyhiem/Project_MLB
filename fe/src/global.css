@@ -7,6 +7,32 @@
 @tailwind utilities;
 
 
+/* Tùy chỉnh cho dots */
+.custom-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 100%;
+  border: 1px #bcbcbc solid;
+  background-color: transparent; /* Nền mặc định */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slick-dots li {
+  width: 10px;
+  height: 10px;
+  margin-right: 1px;
+  margin-left: 1px;
+}
+
+/* Khi dot được chọn, đổi màu nền thành đen */
+.slick-dots li.slick-active .custom-dot {
+  background-color: black;
+  border-color: white; /* Viền đổi sang màu đen */
+}
+
+
 /* Ẩn mũi tên của thẻ input */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {

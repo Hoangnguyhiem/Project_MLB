@@ -25,7 +25,7 @@ export const getCartByUserId = async (req, res) => {
                 },
             ],
         }).populate("products.attributeId")
-            .populate("products.variantId");
+        .populate("products.variantId");
         const cartData = {
             products: cart.products.map((item) => ({
                 productId: item.productId,
@@ -56,7 +56,7 @@ export const addItemToCart = async (req, res) => {
             cart = new Cart({ userId, products: [] });
         }
         const existColorIndex = cart.products.findIndex(
-            (item) => item.variantId.toString() == variantId
+            (item) => item.variantId?._id?.toString() == variantId
         );
         // kiểm tra xem sản có tồn tại trong giỏ hàng không?
         if (existColorIndex !== -1) {
@@ -84,7 +84,7 @@ export const removeFromCart = async (req, res) => {
             return res.status(StatusCodes.NOT_FOUND).json({ error: "Cart not found" });
         }
         cart.products = cart.products.filter(
-            (product) => product.variantId && product.variantId.toString() !== variantId
+            (product) => product?.variantId?._id && product.variantId?._id.toString() !== variantId
         );
         cart.updateTotals();
         await cart.save();
@@ -106,8 +106,11 @@ export const updateProductQuantity = async (req, res) => {
         }
 
         const existColorIndex = cart.products.findIndex(
-            (item) => item.variantId.toString() == variantId
+            (item) => item.variantId?._id.toString() == variantId
         );
+
+        console.log(existColorIndex);
+        
         if (variantId == variantDefault?._id) {
             cart.products[existColorIndex].quantity = quantity;
         }

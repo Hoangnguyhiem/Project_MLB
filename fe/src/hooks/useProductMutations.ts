@@ -1,15 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
 import apiService from '../services/apiService';
-import { useState } from 'react';
-
-// Tạo kiểu dữ liệu cho product
-interface ProductData {
-    name: string;
-    price: number;
-    // Các trường khác tùy vào cấu trúc sản phẩm của bạn
-}
-// const [userId, setUserId] = useState()
 
 
 export const useProductMutations = () => {

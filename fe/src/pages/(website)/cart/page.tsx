@@ -1,25 +1,36 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { message } from 'antd'
-import axios from 'axios'
 import { useProductMutations } from '@/hooks/useProductMutations';
-
-import { Link } from 'lucide-react'
-import React, { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import Slider from "react-slick";
 
 
 const CartPage = () => {
+    // Hook trang thái mutate
     const { contextHolder, updateProductMutation, deleteProductMutation } = useProductMutations();
+    // State đóng mở cập nhật sản phẩm 
     const [clickUpdate, setClickUpdate] = useState<boolean>(false)
+    // State quản lý dữ liệu khi câpk nhật giỏ hàng
     const [variant, setVariant] = useState<any>()
     const [attribute, setAttribute] = useState<any>()
     const [quantity, setQuantity] = useState<any>()
     const [products, setProducts] = useState<any>()
     const [variantDefault, setVariantDefault] = useState<any>()
     const [attributeDefault, setAttributeDefault] = useState<any>()
+    // State để lưu danh sách sản phẩm đã được chọn và tổng tiền
+    const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+    const [totalPrice, setTotalPrice] = useState(0);
+
     if (quantity <= 0) setQuantity(1)
     const { userId } = useParams()
+
+    // Load dau trang
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     // Lấy tất cả sản phẩm theo id người dùng
     const { data: carts } = useQuery({
@@ -28,16 +39,18 @@ const CartPage = () => {
             return axios.get(`http://localhost:8080/api/carts/${userId}`)
         }
     })
-    
+
     // Xóa sản phẩm trong giỏ hàng
     const handleDelete = (variantId: any) => {
         deleteProductMutation.mutate({
             userId, variantId
         })
-    } 
+    }
 
-    // Cập nhật sản phẩm trong giỏ hàng
+    // Hàm được gọi khi cập nhập
     const handleUpdate = () => {
+
+        // Lấy các dữ liệu để thực hiện cập nhập
         const { _id: attributeId, images, color: colorDetail } = attribute
         const { _id: variantId, price, size: sizeDetail, slug, status, discount } = variant
         const color = colorDetail.color
@@ -45,6 +58,7 @@ const CartPage = () => {
         const name = products?.productId?.name
         const productId = products?.productId?._id
 
+        // Cập nhật sản phẩm trong giỏ hàng
         updateProductMutation.mutate({
             userId, productId, variantDefault, attributeId, variantId, images, price, quantity, slug, status, color, size, name, discount
         })
@@ -62,6 +76,7 @@ const CartPage = () => {
         setQuantity(data?.quantity);
     }, []);
 
+    // Cập nhập giá trị cho variant khi chọn hoặc mặc định
     useEffect(() => {
         if (attribute?._id !== attributeDefault?._id) {
             const data = attribute?.variants.find((item: any) => item?.stock > 0)
@@ -72,6 +87,109 @@ const CartPage = () => {
         }
     }, [attribute?._id])
 
+    // Tạo slide vuốt và dots
+    const settings = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,    // Hiển thị 1 hình mỗi lần
+        slidesToScroll: 1,  // Vuốt 1 slide mỗi lần
+        swipe: true,
+        customPaging: () => (
+            <div className="custom-dot">
+            </div>
+        ),
+        appendDots: (dots: any) => (
+            <div
+                style={{
+                    backgroundColor: "transparent",
+                    position: "relative",
+                    width: "100%",
+                }}
+            >
+                <ul style={{ margin: "0px", position: "absolute", bottom: "30px", width: "100%" }}> {dots} </ul>
+            </div>
+        ),
+    };
+
+
+    // Hàm xử lý khi chọn hoặc bỏ chọn tất cả sản phẩm
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            // Nếu chọn tất cả, thêm tất cả product ID vào selectedProducts
+            const allProductIds = carts?.data?.cartData?.products?.map((item: any) => item.variantId?._id) || [];
+            setSelectedProducts(allProductIds);
+        } else {
+            // Nếu bỏ chọn tất cả, xóa sạch selectedProducts
+            setSelectedProducts([]);
+        }
+    };
+
+    useEffect(() => {
+        // Kiểm tra nếu dữ liệu tồn tại
+        if (carts?.data?.cartData?.products) {
+            // Khi vào trang, tự động tích tất cả sản phẩm
+            const allProductIds = carts?.data?.cartData?.products.map((item: any) => item?.variantId?._id);
+            setSelectedProducts([...allProductIds]);
+
+            // Tính tổng tiền của tất cả sản phẩm khi tự động tích
+            const total = carts?.data?.cartData?.products.reduce(
+                (sum: any, item: any) => sum + (item.price * item.quantity),
+                0
+            );
+            setTotalPrice(total);
+        }
+    }, [carts?.data?.cartData?.products]);
+
+    const handleSelectProduct = (variantId: any) => {
+        if (selectedProducts.includes(variantId)) {
+            // Nếu sản phẩm đã tích, bỏ tích
+            setSelectedProducts(selectedProducts.filter((id: any) => id !== variantId));
+        } else {
+            // Nếu chưa tích, thêm sản phẩm vào danh sách tích
+            setSelectedProducts([...selectedProducts, variantId]);
+        }
+    };
+
+    // Hàm tính tổng tiền theo sản phẩm đã tích
+    useEffect(() => {
+        if (carts?.data?.cartData?.products) {
+            const total = carts?.data?.cartData?.products
+                .filter((item: any) => selectedProducts.includes(item?.variantId?._id))
+                .reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0);
+            setTotalPrice(total);
+        }
+    }, [selectedProducts, carts?.data?.cartData?.products]);
+
+    // Kiểm tra nếu tất cả sản phẩm đều đã được chọn
+    const isAllSelected =
+        selectedProducts.length === (carts?.data?.cartData?.products?.length || 0) &&
+        carts?.data?.cartData?.products?.length > 0;
+
+    const navigate = useNavigate();
+    const handleProceedToCheckout = () => {
+        const selectedItems = carts?.data?.cartData?.products.filter((item: any) =>
+            selectedProducts.includes(item.variantId?._id)
+        );
+        console.log(selectedItems);
+
+        // Giờ bạn đã có danh sách sản phẩm đã chọn trong `selectedItems`
+        // Bước tiếp theo là lưu trữ hoặc truyền dữ liệu này sang trang thanh toán
+        navigate("/checkouts", { state: { products: selectedItems, totalPrice } }); // Sử dụng React Router để truyền dữ liệu sang trang thanh toán
+    };
+    useEffect(() => {
+        window.history.pushState(null, '', window.location.href);
+
+        const handlePopState = (event: any) => {
+            window.history.pushState(null, '', window.location.href); // Chặn hành động back
+        };
+
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, []);
     return (
         <main>
             {contextHolder}
@@ -87,13 +205,14 @@ const CartPage = () => {
                 <div className="lg:flex lg:flex-wrap lg:items-start ">
                     <div className="lg:w-[70%]">
 
-
-
                         <div className="px-[20px] py-[14px] mb-[24px] flex items-center border-t-[1px] border-b-[1px] border-t-[#E8E8E8] border-b[#E8E8E8] mt-[2px] lg:border-t-0">
-                            <input className='mr-[8px] w-[20px] h-[20px]' type="checkbox" />
+                            <input className='mr-[8px] w-[20px] h-[20px]'
+                                type="checkbox"
+                                onChange={handleSelectAll}
+                                checked={isAllSelected}
+                            />
                             <span className='text-[14px] font-[600]'>Chọn tất cả</span>
                         </div>
-
 
                         {carts?.data?.cartData.products?.length > 0 ? (
                             carts?.data.cartData.products.map((cart: any, index: any) => (
@@ -101,7 +220,11 @@ const CartPage = () => {
                                     <div className="flex flex-wrap items-center justify-between mt-[24px] lg:justify-between lg:flex-nowrap">
                                         <div className='flex items-start w-[100%]'>
                                             <div className="w-[120px]">
-                                                <input className='absolute w-[20px] h-[20px]' type="checkbox" />
+                                                <input className='absolute w-[20px] h-[20px]'
+                                                    type="checkbox"
+                                                    checked={selectedProducts.includes(cart.variantId?._id)}
+                                                    onChange={() => handleSelectProduct(cart.variantId?._id)}
+                                                />
                                                 <div className="pt-[123.5%] bg-cover bg-center bg-no-repeat"
                                                     style={{ backgroundImage: `url(${cart.images[0]})` }}
                                                 ></div>
@@ -123,7 +246,7 @@ const CartPage = () => {
                                             </div>
 
                                             <div className="lg:hidden">
-                                                <button onClick={() => handleDelete(cart.variantId?._id) }>
+                                                <button onClick={() => handleDelete(cart.variantId?._id)}>
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M13.9998 6L5.99988 14" stroke="black" strokeLinecap="square" strokeLinejoin="round"></path>
                                                         <path d="M6 6L13.9999 14" stroke="black" strokeLinecap="square" strokeLinejoin="round"></path>
@@ -133,7 +256,7 @@ const CartPage = () => {
                                         </div>
                                         <div className="flex justify-center items-center mt-[20px] w-[100%] lg:w-[156.5px] lg:flex-wrap *:font-[500] lg:mt-0">
                                             <button onClick={() => handleSubmitClick(cart)} className='w-[100%] text-center border border-[#E8E8E8] rounded-[3px] text-[14px] py-[6px] px-[8px]'>Thay đổi tùy chọn</button>
-                                            <button onClick={() => handleDelete(cart.variantId?._id) } className='hidden w-full text-center border border-[#E8E8E8] rounded-[3px] text-[14px] py-[6px] px-[8px] mt-[8px] lg:block'>Xóa</button>
+                                            <button onClick={() => handleDelete(cart.variantId?._id)} className='hidden w-full text-center border border-[#E8E8E8] rounded-[3px] text-[14px] py-[6px] px-[8px] mt-[8px] lg:block'>Xóa</button>
                                         </div>
                                     </div>
                                 </div>
@@ -156,7 +279,7 @@ const CartPage = () => {
                             <h2 className='font-[700] text-[18px] mb-[20px]'>THÔNG TIN ĐƠN HÀNG</h2>
                             <div className='flex justify-between text-[14px] font-[500]'>
                                 <span className=''>Tạm tính</span>
-                                <span>{new Intl.NumberFormat('vi-VN').format(carts?.data?.totalPrice)} VND</span>
+                                <span>{totalPrice ? new Intl.NumberFormat('vi-VN').format(totalPrice) : 0} VND</span>
                             </div>
                             <div className='flex justify-between mt-[12px] text-[14px] font-[500]'>
                                 <span>Phí vận chuyển</span>
@@ -164,12 +287,12 @@ const CartPage = () => {
                             </div>
                             <div className='flex justify-between pt-[16px] mt-[16px]  border-t-[2px] border-t-black *:text-[16px] *:font-[700]'>
                                 <span>Tổng đơn hàng</span>
-                                <span>{new Intl.NumberFormat('vi-VN').format(carts?.data?.totalPrice)} VND</span>
+                                <span>{totalPrice ? new Intl.NumberFormat('vi-VN').format(totalPrice) : 0} VND</span>
 
                             </div>
 
                         </div>
-                        <button className='bg-black text-white text-[16px] font-[600] w-full fixed bottom-0 h-[56px] -tracking-wide lg:static lg:rounded-[0_0_8px_8px]'>
+                        <button onClick={() => handleProceedToCheckout()} className='bg-black text-white text-[16px] font-[600] w-full fixed bottom-0 h-[56px] -tracking-wide lg:static lg:rounded-[0_0_8px_8px]'>
                             THANH TOÁN
                         </button>
                     </div>
@@ -185,8 +308,21 @@ const CartPage = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                             </svg>
                         </div>
-                        <div className="w-[38%]">
-                            <img src="" alt="" />
+                        <div className="w-[38%] ">
+                            {products?.productId?.attributes.map((item: any) => (
+                                <div key={item._id}>
+                                    {item._id === attribute?._id && (
+                                        <Slider {...settings}>
+                                            {item.images.map((image: string, index: number) => (
+                                                <div key={index}>
+                                                    <img className='bg-cover bg-center bg-no-repeat' src={image} alt={`product-${index}`} />
+                                                    {/* <div className='pt-[120%] bg-cover bg-center bg-no-repeat' style={{ backgroundImage: `url(${image})` }}></div> */}
+                                                </div>
+                                            ))}
+                                        </Slider>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                         <div className="w-[62%] p-[24px]">
                             <h2 className='mb-[5px] text-[20px] font-[400]'>MLB - Áo sweatshirt unisex cổ bẻ tay dài thời trang</h2>
@@ -203,7 +339,7 @@ const CartPage = () => {
                                             checked={attribute._id === item._id}
 
                                         />
-                                        <label htmlFor={item._id} className={`${attribute._id === item._id ? "border-black" : ""} border-[1px] w-[64px]`}>
+                                        <label htmlFor={item._id} className={`${item._id === attribute._id ? "border-black" : ""} border-[1px] w-[64px]`}>
                                             <img src={item.images[0]} alt="" />
                                         </label>
                                     </>
@@ -211,7 +347,7 @@ const CartPage = () => {
                                 ))}
                             </div>
                             {products?.productId?.attributes.map((item: any) => (
-                                <div key={item._id} className={`${attribute._id === item._id ? "flex" : "hidden"}`}>
+                                <div key={item._id} className={`${item._id === attribute._id ? "flex" : "hidden"}`}>
                                     {item.variants.map((value: any) => (
                                         <div key={value._id} className={`flex flex-wrap *:text-[14px] *:justify-center *:items-center *:rounded-[18px] *:mr-[8px] *:px-[16px] *:py-[7.5px] *:cursor-pointer *:min-w-[65px] *:border-[#E8E8E8] *:border-[1px] *:border-solid *:font-[500]`}>
                                             <>
@@ -222,21 +358,16 @@ const CartPage = () => {
                                                     id={value._id}
                                                     value="1"
                                                     onChange={() => setVariant(value)}
-                                                    checked={variant._id === value._id}
-
                                                 />
                                                 {value.stock === 0 ?
-                                                    <label htmlFor={value._id} className="flex pointer-events-none bg-[#F8F8F8] text-[#D0D0D0]">{value.size?.name}</label>
-                                                    :
-                                                    <label htmlFor={value._id} className={`${value._id == variant._id ? "bg-black text-white" : "bg-white text-black"} flex`}>{value.size?.name}</label>
+                                                    <label htmlFor={value._id} className="flex pointer-events-none bg-[#F8F8F8] text-[#D0D0D0]">{value.size?.name}</label> :
+                                                    <label htmlFor={value._id} className={`${value?._id === variant?._id ? "bg-black text-white" : "bg-white text-black"} flex`}>{value.size?.name}</label>
                                                 }
                                             </>
                                         </div>
                                     ))}
                                 </div>
                             ))}
-
-
                             <div className="my-[24px]">
                                 <div className="border-[#E8E8E8] border-[1px] border-solid h-[48px] w-full flex justify-between *:justify-center">
                                     <button onClick={() => setQuantity(quantity - 1)} className='flex items-center w-[48px]'>-</button>

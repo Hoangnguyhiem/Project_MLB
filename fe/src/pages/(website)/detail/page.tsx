@@ -18,6 +18,10 @@ const DetailPage = ({ onClicks }: Props) => {
 
   const [attribute, setAttribute] = useState<any>({});
   const [variant, setVariant] = useState<any>({});
+  console.log('attribute',attribute);
+
+  console.log(variant);
+  
 
   const [todo, setTodo] = useState(false)
   const { productId } = useParams()
@@ -42,7 +46,7 @@ const DetailPage = ({ onClicks }: Props) => {
   // Tự động chọn size đầu tiên của màu được chọn
   useEffect(() => {
     if (attribute) {
-      const colorData = data?.data.attributes.find((color: any) => color.color?.color === attribute.color?.color);
+      const colorData = data?.data.attributes.find((color: any) => color._id === attribute._id);
       if (colorData) {
         const availableSize = colorData.variants.find((size: any) => size.stock > 0);
         if (availableSize) {
@@ -76,7 +80,7 @@ const DetailPage = ({ onClicks }: Props) => {
   const { mutate } = useMutation({
     mutationFn: async (cart: any) => {
       try {
-        console.log(cart);
+        // console.log(cart);
         
         if (user) {
           await axios.post(`http://localhost:8080/api/carts/add-to-cart`, { ...cart, userId });
@@ -108,10 +112,9 @@ const DetailPage = ({ onClicks }: Props) => {
 
   // Lấy thông tin sản phẩm để lưu vào giỏ hàng
   const { _id: variantId, price, size: sizeDetail, slug, status, discount } = variant
-  console.log(variant);
   
   const { _id: attributeId, color: colorDetail, images } = attribute
-  console.log(attribute);
+
   
   const name = data?.data.name
   const color  = colorDetail?.color
@@ -161,7 +164,7 @@ const DetailPage = ({ onClicks }: Props) => {
                 <div className="">
                   <div className="w-[100%] relative">
                     {data?.data.attributes.map((item: any) => (
-                      <div key={item.color.color} className={`${attribute.color?.color === item.color?.color ? "" : "hidden"}`}>
+                      <div key={item._id} className={`${attribute._id === item._id ? "" : "hidden"}`}>
                         {item.images.map((value: any, index: any) => (
                           <div
                             key={index}
@@ -229,8 +232,8 @@ const DetailPage = ({ onClicks }: Props) => {
 
               {data?.data.attributes.map((item: any) => (
                 <div
-                  key={item.color.color}
-                  className={`${attribute.color?.color === item.color?.color ? "lg:flex" : "lg:hidden"} hidden lg:w-[14%] lg:flex-col lg:overflow-auto lg:order-1 lg:gap-4 lg:pr-[8px] lg:h-[96%] scrollbar`}
+                  key={item._id}
+                  className={`${attribute._id === item._id ? "lg:flex" : "lg:hidden"} hidden lg:w-[14%] lg:flex-col lg:overflow-auto lg:order-1 lg:gap-4 lg:pr-[8px] lg:h-[96%] scrollbar`}
                 >
                   {item.images.map((value: any, index: any) => (
                     <div
@@ -254,10 +257,10 @@ const DetailPage = ({ onClicks }: Props) => {
                     <h1 className='text-[18px] mb-[8px] font-[500] leading-6'>{name}</h1>
 
                     {data?.data.attributes.map((item: any) => (
-                      <div className={`${item.color?.color === attribute.color?.color ? "flex" : "hidden"} h-[12px] overflow-hidden`}>
+                      <div className={`${item._id === attribute._id ? "flex" : "hidden"} h-[12px] overflow-hidden`}>
                         {item.variants.map((value: any, index: any) => (
-                          <p key={index + 1} className={`${value.size.name === variant.size?.name ? "flex" : "hidden"} text-[12px] leading-3 font-[500]`}>
-                            Mã sản phẩm <span>{value.slug}</span>
+                          <p key={index + 1} className={`${value._id === variant._id ? "flex" : "hidden"} text-[12px] leading-3 font-[500]`}>
+                            Mã sản phẩm: <span> {value.slug}</span>
                           </p>
                         ))}
                       </div>
@@ -277,9 +280,9 @@ const DetailPage = ({ onClicks }: Props) => {
 
                 {
                   data?.data.attributes.map((item: any, index: any) => (
-                    <div key={index + 1} className={`${item.color?.color === attribute.color?.color ? "flex" : "hidden"} tab_price px-[20px] my-[18px] h-[25px] overflow-hidden *:text-[20px] font-[500] lg:px-0`}>
+                    <div key={index + 1} className={`${item._id === attribute._id ? "flex" : "hidden"} tab_price px-[20px] my-[18px] h-[25px] overflow-hidden *:text-[20px] font-[500] lg:px-0`}>
                       {item.variants.map((value: any, index: any) => (
-                        <span className={`${value.size?.name === variant.size?.name ? "flex" : "hidden"}`} key={index + 1}>{new Intl.NumberFormat('vi-VN').format(value.price)} VND</span>
+                        <span className={`${value._id === variant._id ? "flex" : "hidden"}`} key={index + 1}>{new Intl.NumberFormat('vi-VN').format(value.price)} VND</span>
                       ))}
                     </div>
                   ))
@@ -292,12 +295,12 @@ const DetailPage = ({ onClicks }: Props) => {
                         <input
                           className='hidden'
                           type="radio"
-                          id={item.color.color}
+                          id={item._id}
                           name="options"
                           value="1"
                           onChange={() => setAttribute(item)}
                         />
-                        <label data-tab={item.color?.color} htmlFor={item.color?.color} key={index + 1} className={`${attribute.color?.color === item.color?.color ? "border-black" : ""} after relative w-[42px] h-[42px] rounded-[50%] border-[1px] border-solid flex justify-center text-center`}>
+                        <label htmlFor={item._id} key={index + 1} className={`${attribute._id === item._id ? "border-black" : ""} after relative w-[42px] h-[42px] rounded-[50%] border-[1px] border-solid flex justify-center text-center`}>
                           <div className="w-[40px] h-[40px] rounded-[50%] border-[5px] border-solid border-white" style={{ backgroundImage: `url('${item.color?.color}')` }}></div>
                         </label>
                       </>
@@ -319,22 +322,21 @@ const DetailPage = ({ onClicks }: Props) => {
                   {
                     data?.data.attributes.map((item: any, index: any) => (
 
-                      <div data-tab={item.color?.color} key={index + 1} className={`${item.color?.color === attribute.color?.color ? "flex" : "hidden"} flex-wrap *:text-[14px] *:justify-center *:items-center *:rounded-[18px] *:mb-[8px] *:mr-[8px] *:px-[16px] *:py-[7.5px] *:cursor-pointer *:min-w-[65px] *:border-[#E8E8E8] *:border-[1px] *:border-solid *:font-[500]`}>
+                      <div key={index + 1} className={`${item._id === attribute._id ? "flex" : "hidden"} flex-wrap *:text-[14px] *:justify-center *:items-center *:rounded-[18px] *:mb-[8px] *:mr-[8px] *:px-[16px] *:py-[7.5px] *:cursor-pointer *:min-w-[65px] *:border-[#E8E8E8] *:border-[1px] *:border-solid *:font-[500]`}>
                         {item.variants.map((value: any, index: any) => (
                           <>
                             <input
                               className='hidden'
                               type="radio"
-                              id={value.size?.name}
+                              id={value._id}
                               name="options1"
                               value="1"
                               onChange={() => setVariant(value)}
-                              checked={variant.size?.name === value.size?.name}
                             />
 
                             {value.stock === 0 ?
-                              <label htmlFor={value.size?.name} key={index + 1} className="flex pointer-events-none bg-[#F8F8F8] text-[#D0D0D0]">{value.size?.name}</label> :
-                              <label htmlFor={value.size?.name} key={index + 1} className={`flex ${variant.size?.name === value.size?.name ? "bg-black text-white" : "bg-white text-black"}`}>{value.size?.name}</label>
+                              <label htmlFor={value._id} key={index + 1} className="flex pointer-events-none bg-[#F8F8F8] text-[#D0D0D0]">{value.size?.name}</label> :
+                              <label htmlFor={value._id} key={index + 1} className={`flex ${variant._id === value._id ? "bg-black text-white" : "bg-white text-black"}`}>{value.size?.name}</label>
                             }
                           </>
                         ))}

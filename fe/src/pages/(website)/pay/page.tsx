@@ -1,8 +1,23 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom';
+import ErrorPage from '../404/page';
 
 type Props = {}
 
 const PayPage = (props: Props) => {
+
+    // Load dau trang
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+    const location = useLocation();
+    const checkouts = location.state || { selectedItems: [] };
+    console.log(checkouts);
+
+    if (checkouts?.selectedItems?.length <= 0) return <ErrorPage />
+
+
 
     const [todos, setTodos] = useState<boolean>(false)
     return (
@@ -20,65 +35,33 @@ const PayPage = (props: Props) => {
                             </svg>
 
                         </div>
-                        <span className="text-[20px] font-[700]">4,750,000</span>
+                        <span className="text-[20px] font-[700]">{checkouts.totalPrice ? new Intl.NumberFormat('vi-VN').format(checkouts.totalPrice) : 0}</span>
                     </button>
                     <div className="bg-[#f7f7f7] -mx-[16px] lg:mx-0">
                         <div className="w-[100%] p-[16px]">
                             <div className={`${todos ? "hidden" : ""}`}>
-                                <div className="mb-[16px]">
-                                    <div className='w-[100%] flex justify-between'>
-                                        <div className='w-[100px] h-[100px]'>
-                                            <div className="pt-[100%] bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('https://product.hstatic.net/200000642007/product/50ivs_3atsv2143_1_bc24aeae61864aac8fd717a2e5837448_34181f53e68d4b439b1bc95d333cbd79_grande.jpg')", }}></div>
-                                        </div>
-                                        <div className="w-full pl-[12px] flex flex-col">
-                                            <div className="leading-5">
-                                                <b className='text-[16px]'>MLB</b><br />
-                                                <span className='text-[14px] mb-[4px]'>Áo thun unisex cổ tròn tay ngắn hiện đại</span>
+                                {checkouts.products.map((item: any) => (
+                                    <div className="mb-[16px]">
+                                        <div className='w-[100%] flex justify-between'>
+                                            <div className='w-[100px] h-[100px]'>
+                                                <div className="pt-[100%] bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url('${item.images[0]}')`, }}></div>
                                             </div>
-                                            <span className='text-[12px] mb-[4px]'>50CRS / XL / 3ATSB0434</span>
-                                            <div className="text-[14px] *:font-[700] flex justify-between mt-[8px]">
-                                                <span className=''>1,999,000 <span>VND</span></span>
-                                                <span className=''>So luong: 1</span>
+
+                                            <div className="w-full pl-[12px] flex flex-col">
+                                                <div className="leading-5">
+                                                    <b className='text-[16px]'>MLB</b><br />
+                                                    <span className='text-[14px] mb-[4px]'>{item.name}</span>
+                                                </div>
+                                                <span className='text-[12px] mb-[4px]'>50CRS / {item.size} / {item.slug}</span>
+                                                <div className="text-[14px] *:font-[700] flex justify-between mt-[8px]">
+                                                    <span className=''>{item.price ? new Intl.NumberFormat('vi-VN').format(item.price) : 0}<span>VND</span></span>
+                                                    <span className=''>Số lượng: {item.quantity}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="mb-[16px]">
-                                    <div className='w-[100%] flex justify-between'>
-                                        <div className='w-[100px] h-[100px]'>
-                                            <div className="pt-[100%] bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('https://product.hstatic.net/200000642007/product/50ivs_3atsv2143_1_bc24aeae61864aac8fd717a2e5837448_34181f53e68d4b439b1bc95d333cbd79_grande.jpg')", }}></div>
-                                        </div>
-                                        <div className="w-full pl-[12px] flex flex-col">
-                                            <div className="leading-5">
-                                                <b className='text-[16px]'>MLB</b><br />
-                                                <span className='text-[14px] mb-[4px]'>Áo thun unisex cổ tròn tay ngắn hiện đại</span>
-                                            </div>
-                                            <span className='text-[12px] mb-[4px]'>50CRS / XL / 3ATSB0434</span>
-                                            <div className="text-[14px] *:font-[700] flex justify-between mt-[8px]">
-                                                <span className=''>1,999,000 <span>VND</span></span>
-                                                <span className=''>So luong: 1</span>
-                                            </div>
+
                                         </div>
                                     </div>
-                                </div>
-                                <div className="mb-[16px]">
-                                    <div className='w-[100%] flex justify-between'>
-                                        <div className='w-[100px] h-[100px]'>
-                                            <div className="pt-[100%] bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('https://product.hstatic.net/200000642007/product/50ivs_3atsv2143_1_bc24aeae61864aac8fd717a2e5837448_34181f53e68d4b439b1bc95d333cbd79_grande.jpg')", }}></div>
-                                        </div>
-                                        <div className="w-full pl-[12px] flex flex-col">
-                                            <div className="leading-5">
-                                                <b className='text-[16px]'>MLB</b><br />
-                                                <span className='text-[14px] mb-[4px]'>Áo thun unisex cổ tròn tay ngắn hiện đại</span>
-                                            </div>
-                                            <span className='text-[12px] mb-[4px]'>50CRS / XL / 3ATSB0434</span>
-                                            <div className="text-[14px] *:font-[700] flex justify-between mt-[8px]">
-                                                <span className=''>1,999,000 <span>VND</span></span>
-                                                <span className=''>So luong: 1</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
 
                             <div className="pb-[16px]">
@@ -107,11 +90,12 @@ const PayPage = (props: Props) => {
                                 </div>
                             </div>
 
+
                             <div className="">
                                 <div className="*:text-[14px] mb-[32px]">
                                     <div className="flex justify-between *:font-[700]">
                                         <h3>Tạm tính</h3>
-                                        <span>4,750,000</span>
+                                        <span>{checkouts.totalPrice ? new Intl.NumberFormat('vi-VN').format(checkouts.totalPrice) : 0}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span>Phí vận chuyển</span>

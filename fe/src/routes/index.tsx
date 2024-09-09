@@ -31,7 +31,7 @@ const Router = () => {
                     <Route index element={<HomePage />} />
                     <Route path="collections/:id" element={<ListPage />} />
                     <Route path="products/:productId" element={<DetailPage onClicks={toggleColor} />} />
-                    <Route path="products/pay" element={<PayPage />} />
+                    <Route path="checkouts" element={<PayPage />} />
                     <Route path="carts/:userId" element={<CartPage />} />
                     {/* <Route path="error" element={<ErrorPage />} /> */}
                 </Route>
