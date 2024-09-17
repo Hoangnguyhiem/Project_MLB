@@ -3,7 +3,9 @@ import Cart from "../models/cart";
 
 // Lấy danh sách sản phẩm thuộc 1 user
 export const getCartByUserId = async (req, res) => {
-    const { userId } = req.params;
+    const { _id } =  req.user;
+    const userId = _id.toString()
+    
     try {
         const cart = await Cart.findOne({ userId }).populate({
             path: "products.productId",
@@ -26,6 +28,8 @@ export const getCartByUserId = async (req, res) => {
             ],
         }).populate("products.attributeId")
         .populate("products.variantId");
+        // console.log();
+        
         const cartData = {
             products: cart.products.map((item) => ({
                 productId: item.productId,
@@ -47,7 +51,9 @@ export const getCartByUserId = async (req, res) => {
     } catch (error) { }
 };
 export const addItemToCart = async (req, res) => {
-    const { userId, variantId, attributeId, productId, quantity, color, images, price, size, name, slug, status, discount } = req.body;
+    const { variantId, attributeId, productId, quantity, color, images, price, size, name, slug, status, discount } = req.body;
+    const { _id } =  req.user;
+    const userId = _id.toString()
     try {
         // kiểm tra giỏ hàng có tồn tại chưa? dựa theo UserId
         let cart = await Cart.findOne({ userId })
@@ -77,7 +83,10 @@ export const addItemToCart = async (req, res) => {
 // Xóa sản phẩm trong giỏ hàng thuộc 1 user
 
 export const removeFromCart = async (req, res) => {
-    const { userId, variantId } = req.body;
+    const { variantId } = req.body;
+    const { _id } =  req.user;
+    const userId = _id.toString()
+    
     try {
         let cart = await Cart.findOne({ userId });
         if (!cart) {
@@ -86,6 +95,9 @@ export const removeFromCart = async (req, res) => {
         cart.products = cart.products.filter(
             (product) => product?.variantId?._id && product.variantId?._id.toString() !== variantId
         );
+
+        console.log(cart);
+        
         cart.updateTotals();
         await cart.save();
         return res.status(StatusCodes.OK).json({ cart });
@@ -95,10 +107,11 @@ export const removeFromCart = async (req, res) => {
 };
 // Cập nhật số lượng sản phẩm trong giỏ hàng thuộc 1 user
 export const updateProductQuantity = async (req, res) => {
-    const { userId, productId, variantDefault, attributeId, variantId, images, price, quantity, slug, status, color, size, name, discount } = req.body;
-
-
-
+    const { productData } = req.body;
+    const { _id } =  req.user;
+    const userId = _id.toString()
+    const {productId, variantDefault, attributeId, variantId, images, price, quantity, slug, status, color, size, name, discount} = productData
+    
     try {
         let cart = await Cart.findOne({ userId });
         if (!cart) {

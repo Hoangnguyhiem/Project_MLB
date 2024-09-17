@@ -8,10 +8,10 @@ export const useProductMutations = () => {
     const [messageApi, contextHolder] = message.useMessage();
 
     const updateProductMutation = useMutation({
-        mutationFn: async (productData: any) => {
+        mutationFn: async ({token , ...productData}: any) => {
             try {
                 // Gọi API update sản phẩm
-                const response = await apiService.updateProduct(productData);
+                const response = await apiService.updateProduct(token,productData);
                 return response;
             } catch (error) {
                 throw new Error('Thao tác cập nhật không thành công');
@@ -34,10 +34,10 @@ export const useProductMutations = () => {
         },
     });
     const deleteProductMutation = useMutation({
-        mutationFn: async (productData: any) => {
+        mutationFn: async ({token, variantId} : any) => {
             try {
                 // Gọi API update sản phẩm
-                const response = await apiService.deleteProduct(productData);
+                const response = await apiService.deleteProduct(token, variantId);
                 return response;
             } catch (error) {
                 throw new Error('Thao tác xóa không thành công');

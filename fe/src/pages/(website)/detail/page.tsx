@@ -4,12 +4,13 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ErrorPage from '../404/page';
+import Favorite from './_components/favorite';
 
 type Props = {
   onClicks: () => void;
 }
 const DetailPage = ({ onClicks }: Props) => {
-  
+
   const queryClient = useQueryClient()
   const [messageApi, contextHolder] = message.useMessage()
 
@@ -18,15 +19,15 @@ const DetailPage = ({ onClicks }: Props) => {
 
   const [attribute, setAttribute] = useState<any>({});
   const [variant, setVariant] = useState<any>({});
-  console.log('attribute',attribute);
-
-  console.log(variant);
-  
 
   const [todo, setTodo] = useState(false)
   const { productId } = useParams()
 
-  const [userId, setUserId] = useState()
+
+  const token = localStorage.getItem('accessToken');
+
+
+
 
   if (quantity <= 0) setQuantity(1)
   // Load dau trang
@@ -66,24 +67,19 @@ const DetailPage = ({ onClicks }: Props) => {
     }
   }, [data]);
 
-  const user = localStorage.getItem("user")
-  useEffect(() => {
-    if (user) {
-      const { data } = JSON.parse(user)
-      const userId = data.id
-      setUserId(userId)
 
-    }
-  })
+
 
   // Sử lý trạng thái thêm giỏ hàng
   const { mutate } = useMutation({
     mutationFn: async (cart: any) => {
       try {
-        // console.log(cart);
-        
-        if (user) {
-          await axios.post(`http://localhost:8080/api/carts/add-to-cart`, { ...cart, userId });
+        if (token) {
+          await axios.post(`http://localhost:8080/api/carts/add-to-cart`, { ...cart }, {
+            headers: {
+              Authorization: `Bearer ${token}`, // Truyền token vào header
+            },
+          });
         } else {
           onClicks()
           throw new Error("")
@@ -98,7 +94,7 @@ const DetailPage = ({ onClicks }: Props) => {
         content: "Them vao gio hang thanh cong",
       }),
         queryClient.invalidateQueries({
-          queryKey: ['carts', userId],
+          queryKey: ['carts'],
         })
     },
     onError: (error) => {
@@ -112,20 +108,20 @@ const DetailPage = ({ onClicks }: Props) => {
 
   // Lấy thông tin sản phẩm để lưu vào giỏ hàng
   const { _id: variantId, price, size: sizeDetail, slug, status, discount } = variant
-  
+
   const { _id: attributeId, color: colorDetail, images } = attribute
 
-  
+
   const name = data?.data.name
-  const color  = colorDetail?.color
+  const color = colorDetail?.color
   const size = sizeDetail?.name
   // console.log(size);
-  
+
 
 
   // Submit thêm thông tin vào giỏ hàng
   const onSubmitCart = () => {
-    mutate({ productId,variantId, attributeId, price, size, slug, status, discount, color, images, name, quantity } as any)
+    mutate({ productId, variantId, attributeId, price, size, slug, status, discount, color, images, name, quantity } as any)
   }
 
   const onSubmit = () => {
@@ -144,10 +140,6 @@ const DetailPage = ({ onClicks }: Props) => {
   const handlePrev = () => {
     setCurrentIndex((currentIndex - 1 + data?.data.attributes[0].images.length) % data?.data.attributes[0].images.length);
   };
-
-
-
-
 
 
   if (isLoading) return <ErrorPage />
@@ -257,34 +249,33 @@ const DetailPage = ({ onClicks }: Props) => {
                     <h1 className='text-[18px] mb-[8px] font-[500] leading-6'>{name}</h1>
 
                     {data?.data.attributes.map((item: any) => (
-                      <div className={`${item._id === attribute._id ? "flex" : "hidden"} h-[12px] overflow-hidden`}>
-                        {item.variants.map((value: any, index: any) => (
+                        item.variants.map((value: any, index: any) => (
                           <p key={index + 1} className={`${value._id === variant._id ? "flex" : "hidden"} text-[12px] leading-3 font-[500]`}>
                             Mã sản phẩm: <span> {value.slug}</span>
                           </p>
-                        ))}
-                      </div>
+                        ))
                     ))}
                   </div>
 
                   <div className="flex">
-                    <a href="">
+                    <button>
                       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"> <path d="M21.6969 8.01054C22.1594 8.80179 23.018 9.33333 24.0006 9.33333C25.4734 9.33333 26.6673 8.13943 26.6673 6.66667C26.6673 5.19391 25.4734 4 24.0006 4C22.5279 4 21.334 5.19391 21.334 6.66667C21.334 7.15674 21.4662 7.61594 21.6969 8.01054ZM21.6969 8.01054L10.3044 14.6561M10.3044 14.6561C9.84187 13.8649 8.98334 13.3333 8.00065 13.3333C6.52789 13.3333 5.33398 14.5272 5.33398 16C5.33398 17.4728 6.52789 18.6667 8.00065 18.6667C8.98334 18.6667 9.84187 18.1351 10.3044 17.3439M10.3044 14.6561C10.5351 15.0507 10.6673 15.5099 10.6673 16C10.6673 16.4901 10.5351 16.9493 10.3044 17.3439M10.3044 17.3439L21.6969 23.9895M21.6969 23.9895C22.1594 23.1982 23.018 22.6667 24.0006 22.6667C25.4734 22.6667 26.6673 23.8606 26.6673 25.3333C26.6673 26.8061 25.4734 28 24.0006 28C22.5279 28 21.334 26.8061 21.334 25.3333C21.334 24.8433 21.4662 24.3841 21.6969 23.9895Z" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </svg>
-                    </a>
-                    <a href="">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none"> <g clip-path="url(#wishlist-svg)"> <path d="M15.7232 25.5459L7.37014 17.1929C5.20995 15.0327 5.20995 11.5303 7.37014 9.37014C9.53033 7.20995 13.0327 7.20995 15.1929 9.37014L15.7232 9.90047L16.2535 9.37014C18.4137 7.20995 21.9161 7.20995 24.0763 9.37014C26.2365 11.5303 26.2365 15.0327 24.0763 17.1929L15.7232 25.5459Z" stroke="black" stroke-width="1.5" stroke-linecap="round"></path> </g> <defs> <clipPath id="wishlist-svg"> <rect width="32" height="32" fill="white"></rect> </clipPath> </defs> </svg>
-                    </a>
+                    </button>
+                    <Favorite />
                   </div>
 
                 </div>
 
                 {
                   data?.data.attributes.map((item: any, index: any) => (
-                    <div key={index + 1} className={`${item._id === attribute._id ? "flex" : "hidden"} tab_price px-[20px] my-[18px] h-[25px] overflow-hidden *:text-[20px] font-[500] lg:px-0`}>
-                      {item.variants.map((value: any, index: any) => (
-                        <span className={`${value._id === variant._id ? "flex" : "hidden"}`} key={index + 1}>{new Intl.NumberFormat('vi-VN').format(value.price)} VND</span>
-                      ))}
-                    </div>
+                      item.variants.map((value: any, index: any) => (
+                        <div className={`${value._id === variant._id ? "flex" : "hidden"} flex items-end px-[20px] my-[18px] lg:px-0`} key={index + 1}>
+                          <span className="text-[20px] font-[500]">{new Intl.NumberFormat('vi-VN').format(value.price - (value.price * value.discount / 100))} VND</span>
+                          <del className={`${value.discount === 0 ? "hidden" : ""} ml-[8px] text-[16px] text-[#808080]`}>{new Intl.NumberFormat('vi-VN').format(value.price)} VND</del>
+                          <span className={`${value.discount === 0 ? "hidden" : ""} bg-[#FF0000] rounded-[3px] text-white text-[14px] font-[500] p-[2px_5px] ml-[5px]`}>-{value.discount}%</span>
+                        </div>
+                      ))
+                  
                   ))
                 }
 

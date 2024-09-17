@@ -32,9 +32,12 @@ const ProductsList = (props: Props) => {
         }));
     };
 
+    console.log(products);
+    
+
     if (isLoading) return <ErrorPage />
     if (isError) return <div>{error.message}</div>
-    if (products?.data.length <= 0) return (<div>Dell co san pham nao</div>)
+    if (products?.data.products.length <= 0) return (<div>Dell co san pham nao</div>)
 
     return (
         

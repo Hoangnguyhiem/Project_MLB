@@ -2,10 +2,11 @@ import { useProductMutations } from '@/hooks/useProductMutations';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
+import NavigationButton from './_components/navigationButton';
 
 
 const CartPage = () => {
@@ -25,26 +26,34 @@ const CartPage = () => {
     const [totalPrice, setTotalPrice] = useState(0);
 
     if (quantity <= 0) setQuantity(1)
-    const { userId } = useParams()
+    // const { userId } = useParams()
+
 
     // Load dau trang
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
+    const token = localStorage.getItem('accessToken');
+    // console.log(token);
+    
     // Lấy tất cả sản phẩm theo id người dùng
     const { data: carts } = useQuery({
         queryKey: ['carts'],
         queryFn: () => {
-            return axios.get(`http://localhost:8080/api/carts/${userId}`)
+            return axios.get(`http://localhost:8080/api/carts`, {
+                headers: {
+                    Authorization: `Bearer ${token}`, // Truyền token vào header
+                  }
+            })
         }
     })
 
     // Xóa sản phẩm trong giỏ hàng
     const handleDelete = (variantId: any) => {
-        deleteProductMutation.mutate({
-            userId, variantId
-        })
+        deleteProductMutation.mutate(
+            {token, variantId}
+        )
     }
 
     // Hàm được gọi khi cập nhập
@@ -60,7 +69,7 @@ const CartPage = () => {
 
         // Cập nhật sản phẩm trong giỏ hàng
         updateProductMutation.mutate({
-            userId, productId, variantDefault, attributeId, variantId, images, price, quantity, slug, status, color, size, name, discount
+            token, productId, variantDefault, attributeId, variantId, images, price, quantity, slug, status, color, size, name, discount
         })
         setClickUpdate(!clickUpdate)
     }
@@ -171,25 +180,23 @@ const CartPage = () => {
         const selectedItems = carts?.data?.cartData?.products.filter((item: any) =>
             selectedProducts.includes(item.variantId?._id)
         );
-        console.log(selectedItems);
-
-        // Giờ bạn đã có danh sách sản phẩm đã chọn trong `selectedItems`
         // Bước tiếp theo là lưu trữ hoặc truyền dữ liệu này sang trang thanh toán
         navigate("/checkouts", { state: { products: selectedItems, totalPrice } }); // Sử dụng React Router để truyền dữ liệu sang trang thanh toán
     };
+
+    // Hook chặn người dùng ấn nút back trên trình duyệt
     useEffect(() => {
         window.history.pushState(null, '', window.location.href);
 
         const handlePopState = (event: any) => {
             window.history.pushState(null, '', window.location.href); // Chặn hành động back
         };
-
         window.addEventListener('popstate', handlePopState);
-
         return () => {
             window.removeEventListener('popstate', handlePopState);
         };
     }, []);
+
     return (
         <main>
             {contextHolder}
@@ -215,8 +222,8 @@ const CartPage = () => {
                         </div>
 
                         {carts?.data?.cartData.products?.length > 0 ? (
-                            carts?.data.cartData.products.map((cart: any, index: any) => (
-                                <div key={index + 1} className="px-[20px]">
+                            <div className="px-[20px]">
+                                {carts?.data.cartData.products.map((cart: any, index: any) => (
                                     <div className="flex flex-wrap items-center justify-between mt-[24px] lg:justify-between lg:flex-nowrap">
                                         <div className='flex items-start w-[100%]'>
                                             <div className="w-[120px]">
@@ -259,15 +266,19 @@ const CartPage = () => {
                                             <button onClick={() => handleDelete(cart.variantId?._id)} className='hidden w-full text-center border border-[#E8E8E8] rounded-[3px] text-[14px] py-[6px] px-[8px] mt-[8px] lg:block'>Xóa</button>
                                         </div>
                                     </div>
+                                ))}
+                                <div className="hidden lg:flex justify-center mt-[12px] pt-[48px] border-t-[1px] border-t-[#E8E8E8]">
+                                    <NavigationButton />
                                 </div>
-                            ))
+                            </div>
+
                         ) : (
                             <div className="w-[100%] py-[60px] flex flex-col items-center">
                                 <div className="icon-empty-cart">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none"> <path d="M21.27 31.67C21.76 31.67 22.19 31.48 22.57 31.1C22.95 30.72 23.14 30.29 23.14 29.8C23.14 29.31 22.95 28.88 22.57 28.5C22.19 28.12 21.76 27.93 21.27 27.93C20.74 27.93 20.29 28.12 19.94 28.5C19.58 28.88 19.41 29.31 19.41 29.8C19.41 30.29 19.59 30.72 19.94 31.1C20.3 31.48 20.74 31.67 21.27 31.67ZM32.27 31.67C32.76 31.67 33.19 31.48 33.57 31.1C33.95 30.72 34.14 30.29 34.14 29.8C34.14 29.31 33.95 28.88 33.57 28.5C33.19 28.12 32.76 27.93 32.27 27.93C31.78 27.93 31.35 28.12 30.97 28.5C30.59 28.88 30.4 29.31 30.4 29.8C30.4 30.29 30.59 30.72 30.97 31.1C31.35 31.48 31.78 31.67 32.27 31.67ZM43.14 31.67C43.63 31.67 44.06 31.48 44.44 31.1C44.82 30.72 45.01 30.29 45.01 29.8C45.01 29.31 44.82 28.88 44.44 28.5C44.06 28.12 43.63 27.93 43.14 27.93C42.65 27.93 42.22 28.12 41.84 28.5C41.46 28.88 41.27 29.31 41.27 29.8C41.27 30.29 41.46 30.72 41.84 31.1C42.22 31.48 42.65 31.67 43.14 31.67ZM9 55.2V15.6C9 14.58 9.34 13.72 10.03 13.03C10.72 12.34 11.58 12 12.6 12H51.8C52.82 12 53.68 12.34 54.37 13.03C55.06 13.72 55.4 14.57 55.4 15.6V44.13C55.4 45.15 55.06 46.01 54.37 46.7C53.68 47.39 52.83 47.73 51.8 47.73H16.47L9 55.2ZM10.47 51.6L15.8 46.27H51.8C52.42 46.27 52.93 46.07 53.33 45.67C53.73 45.27 53.93 44.76 53.93 44.14V15.6C53.93 14.98 53.73 14.47 53.33 14.07C52.93 13.67 52.42 13.47 51.8 13.47H12.6C11.98 13.47 11.47 13.67 11.07 14.07C10.67 14.47 10.47 14.98 10.47 15.6V51.6Z" fill="#D0D0D0"></path> <path opacity="0.05" d="M51.8 42.2696H15.8L10.47 47.5996V51.5996L15.8 46.2696H51.8C52.42 46.2696 52.93 46.0696 53.33 45.6696C53.73 45.2696 53.93 44.7596 53.93 44.1396V40.1396C53.93 40.7596 53.73 41.2696 53.33 41.6696C52.93 42.0696 52.42 42.2696 51.8 42.2696Z" fill="black"></path> </svg>
                                 </div>
                                 <p className='my-[24px] text-[16px] font-[500]'>Không có sản phẩm nào trong giỏ hàng</p>
-                                <a className='text-[16px] font-[500] border-[1px] px-[32px] py-[12px] hover:text-[#BB9244] rounded-[4px]' href="">Tiếp tục mua hàng</a>
+                                <NavigationButton />
                             </div>
                         )}
 

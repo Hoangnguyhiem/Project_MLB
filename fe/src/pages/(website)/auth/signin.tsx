@@ -24,7 +24,7 @@ const Signin = (props: Props) => {
   const { mutate } = useMutation({
     mutationFn: async (singin: TAuth) => {
       try {
-        const {data} = await axios.post(`http://localhost:8080/api/auth/signin`, singin)
+        const {data}= await axios.post(`http://localhost:8080/api/auth/signin`, singin)
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
         
@@ -40,7 +40,7 @@ const Signin = (props: Props) => {
       }),
       setTimeout(() => {
           navigater(`/`)
-      }, 2000)
+      }, 1000)
     },
     onError: (error) => {
       messageApi.open({

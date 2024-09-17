@@ -43,7 +43,7 @@ const Signup = (props: Props) => {
             }),
             setTimeout(() => {
                 navigater(`/signin`)
-            }, 2000)
+            }, 1000)
         },
         onError: (error) => {
             messageApi.open({

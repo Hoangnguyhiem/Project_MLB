@@ -13,6 +13,7 @@ import categorySizeRouter from "./routers/category-size";
 import categoryRouter from "./routers/category";
 import cartRouter from "./routers/cart";
 import orderRouter from "./routers/order";
+import favoriteRouter from "./routers/favorite";
 import attribute from "./routers/attribute";
 import imagesRouter from "./routers/images";
 import momoRouter from "./routers/momo";
@@ -40,10 +41,11 @@ app.use("/api", categorySizeRouter);
 app.use("/api", categoryRouter);
 app.use("/api", cartRouter);
 app.use("/api", orderRouter);
+app.use("/api", favoriteRouter);
 app.use("/api", attribute);
-app.use("/images", imagesRouter);
 app.use("/api", momoRouter);
 app.use("/api", zaloPayRouter);
+app.use("/images", imagesRouter);
 
 
 export const viteNodeApp = app;

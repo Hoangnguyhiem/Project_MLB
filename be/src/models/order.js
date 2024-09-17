@@ -1,3 +1,5 @@
+import { request } from "express";
+import { required } from "joi";
 import mongoose from "mongoose";
 
 // Hàm để sinh orderNumber
@@ -14,11 +16,19 @@ const orderItemSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         auto: true,
     },
-    price: {
+    productId: {
         type: String,
         required: true,
     },
-    price: {
+    variantId: {
+        type: String,
+        required: true,
+    },
+    color: {
+        type: String,
+        required: true,
+    },
+    size: {
         type: String,
         required: true,
     },
@@ -30,6 +40,14 @@ const orderItemSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    slug: {
+        type: String,
+        required: true,
+    },
+    image: {
+        type: String,
+        required: true,
+    }
 });
 
 const orderSchema = new mongoose.Schema({
@@ -47,7 +65,7 @@ const orderSchema = new mongoose.Schema({
         type: String,
         // required: true,
     },
-    totalPrice: {
+    totalAmount: {
         type: Number,
         // required: true,
     },
@@ -68,4 +86,4 @@ orderSchema.pre("save", function (next) {
     }
     next();
 });
-export default mongoose.model.Order || mongoose.model("Order", orderSchema);
+export default mongoose.models.Order || mongoose.model("Order", orderSchema);

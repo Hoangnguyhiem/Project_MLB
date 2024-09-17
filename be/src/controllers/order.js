@@ -33,6 +33,22 @@ export const getOrderById = async (req, res) => {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
     }
 };
+
+export const getOrderByUserId = async (req, res) => {
+    try {
+        const { _id } = req.user;
+        const userId = _id.toString()
+        console.log(userId);
+        
+        const order = await Order.find({ userId })     
+        if (!order) {
+            return res.status(StatusCodes.NOT_FOUND).json({ error: "Order not found" });
+        }
+        return res.status(StatusCodes.OK).json(order);
+    } catch (error) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+    }
+};
 export const updateOrder = async (req, res) => {
     try {
         const { orderId } = req.params;

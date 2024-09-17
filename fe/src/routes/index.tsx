@@ -4,6 +4,9 @@ import LayoutAdmin from "@/pages/(dashboard)/layout";
 import ProductAddPage from "@/pages/(dashboard)/product/add/page";
 import ProductManagementPage from "@/pages/(dashboard)/product/page";
 import ErrorPage from "@/pages/(website)/404/page";
+import ViewAccount from "@/pages/(website)/account/_components/view";
+import WishlistPage from "@/pages/(website)/account/_components/wishlist";
+import AccountPage from "@/pages/(website)/account/page";
 import Signin from "@/pages/(website)/auth/signin";
 import Signup from "@/pages/(website)/auth/signup";
 import CartPage from "@/pages/(website)/cart/page";
@@ -32,7 +35,11 @@ const Router = () => {
                     <Route path="collections/:id" element={<ListPage />} />
                     <Route path="products/:productId" element={<DetailPage onClicks={toggleColor} />} />
                     <Route path="checkouts" element={<PayPage />} />
-                    <Route path="carts/:userId" element={<CartPage />} />
+                    <Route path="carts" element={<CartPage />} />
+                    <Route path="account" element={<AccountPage />}>
+                        <Route index element={<ViewAccount />} />
+                        <Route path="wishlist" element={<WishlistPage/>} />
+                    </Route>
                     {/* <Route path="error" element={<ErrorPage />} /> */}
                 </Route>
                 <Route path="signin" element={<Signin />} />

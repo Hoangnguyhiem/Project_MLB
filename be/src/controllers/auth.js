@@ -33,10 +33,10 @@ const generateRefreshToken = (userId) => {
     return jwt.sign({ userId }, "123456", { expiresIn: "7d" });
 };
 const generateAccessToken = (userId) => {
-    return jwt.sign({ userId }, "123456", { expiresIn: "15m" });
+    return jwt.sign({ userId }, "123456", { expiresIn: "10d" });
 };
 export const signup = async (req, res) => {
-    const {name, email, password, date } = req.body;
+    const { name, email, password, date } = req.body;
     // const { error } = signupSchema.validate(req.body, { abortEarly: false });
     // if (error) {
     //     const messages = error.details.map((item) => item.message);
@@ -158,3 +158,22 @@ export const isTokenBlacklisted = async (token) => {
     const tokenInBlacklist = await BlacklistedToken.findOne({ token });
     return !!tokenInBlacklist;
 };
+
+
+export const getUserById = async (req, res) => {
+    const { _id } =  req.user;
+    const userId = _id.toString()
+    try {
+        const user = await User.findOne({ _id:userId });
+        if (!user) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+                messages: ["User không tồn tại"],
+            });
+        }
+        return res.status(StatusCodes.OK).json({
+            user
+        });
+    } catch (error) {
+        console.error(`Error finding user with email ${email}:`, error);
+    }
+}

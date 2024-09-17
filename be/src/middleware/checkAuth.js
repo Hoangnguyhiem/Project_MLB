@@ -4,7 +4,8 @@ import { isTokenBlacklisted } from "../controllers/auth";
 
 export const checkAuth = async (req, res, next) => {
     try {
-        const token = req.headers.authorization;
+        const token = req.headers.authorization?.split(" ")[1];
+        
         if (!token) {
             return res.status(401).json({ error: "Unauthorized" });
         }
@@ -25,9 +26,9 @@ export const checkAuth = async (req, res, next) => {
         }
 
         const user = await User.findOne({ _id: decoded.userId });
-        if (!user || user.role !== "admin") {
-            return res.status(401).json({ error: "Unauthorized" });
-        }
+        // if (!user || user.role !== "admin") {
+        //     return res.status(401).json({ error: "Unauthorized" });
+        // }
 
         // Thêm user vào req để sử dụng ở các middleware tiếp theo
         req.user = user;

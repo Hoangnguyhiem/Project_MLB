@@ -33,34 +33,19 @@ const Header = ({ onClicks }: Props) => {
     return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
   }
 
-  const [userId, setUserId] = useState(null);
-
-
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user) {
-      const { data } = JSON.parse(user);
-      setUserId(data.id);
-    }
-  }, []);
-
-
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => {
-      return axios.get(`http://localhost:8080/api/users/${userId}`)
-    },
-    enabled: !!userId,
-  })
-
+  const token = localStorage.getItem('accessToken');
   // Lấy thông tin giỏ hàng
   const { data: carts } = useQuery({
-    queryKey: ['carts', userId],
+    queryKey: ['carts'],
     queryFn: () => {
-      return axios.get(`http://localhost:8080/api/carts/${userId}`)
-    },
-    enabled: !!userId,
-  })
+        return axios.get(`http://localhost:8080/api/carts`, {
+            headers: {
+                Authorization: `Bearer ${token}`, // Truyền token vào header
+              },
+        })
+    }
+})
+
 
   return (
     <>
@@ -142,50 +127,6 @@ const Header = ({ onClicks }: Props) => {
                     )}
                   </li>
                 ))}
-
-
-
-
-
-
-
-
-
-
-                {/* {collections?.data.map((collection: any) => (
-                  <li key={collection._id} className="hover">
-                    <Link to={`collections/${collection._id}`} className="hover:text-[#BB9244] hover:border-b-[1px] hover:border-b-black active:text-[#BB9244] active:border-b-[1px] active:border-b-black py-[15px] px-[18px]"> {collection.name}</Link>
-                    {collection.name == "GIẢM GIÁ" ? "" : (
-                      <div className="hoverStatus hidden absolute py-[30px] w-[100%] top-[100%] bg-white left-0 z-10">
-                        <div className="flex justify-center max-w-[1200px] m-[0_auto]">
-                          <ul className="flex min-w-[700px] *:text-[14px]">
-                            {collection.subcategoriesId.map((collection: any, index: any) => (
-                              <li key={collection._id} className={`${index == 0 ? "" : "pl-[40px]"} text-left`}>
-                                <Link to={`collections/${collection._id}`} className="mb-[12px]">
-                                  {collection.name}
-                                </Link>
-                                <ul className="*:font-[500] *:text-[#787878]">
-
-                                  {collection.subcategoriesId.map((collection: any) => (
-                                    <li key={collection._id} className="mt-[4px]">
-                                      <Link to={`collections/${collection._id}`}>
-                                        {capitalizeFirstLetter(collection.name)}
-                                      </Link>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </li>
-
-                            ))}
-                          </ul>
-                          <div className="banner-submenu pl-[45px] ml-[45px] mx-w-[355px] border-l-[1px] border-l-[#eeeeee]">
-                            <img className=" ls-is-cached lazyloaded" alt="QUẦN ÁO|APPAREL" width="309" height="309" src={collection.image} />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </li>
-                ))} */}
               </ul>
             </nav>
           </div>
@@ -196,23 +137,23 @@ const Header = ({ onClicks }: Props) => {
                 <img className=" ls-is-cached lazyloaded" src="https://file.hstatic.net/200000642007/file/icon-search_f3577f42c6314038a0636c20100bd8d9.svg" data-src="https://file.hstatic.net/200000642007/file/icon-search_f3577f42c6314038a0636c20100bd8d9.svg" alt="Icon search" width={24} height={24} />
               </a>
             </div>
-            <div className="relative flex items-center col-start-3 lg:col-start-2">
-              <Link to={userId ? `carts/${userId}` : '#'}
-                onClick={userId ? undefined : onClicks} className='w-[40px] h-[40px] flex justify-center items-center text-center'>
+            <Link to={`/carts`} className="relative flex items-center col-start-3 lg:col-start-2">
+              <div 
+                onClick={carts ? undefined : onClicks} className='w-[40px] h-[40px] flex justify-center items-center text-center'>
                 <img className=" ls-is-cached lazyloaded" src="https://file.hstatic.net/200000642007/file/icon-cart_d075fce117f74a07ae7f149d8943fc33.svg" data-src="https://file.hstatic.net/200000642007/file/icon-cart_d075fce117f74a07ae7f149d8943fc33.svg" alt="Icon cart" width={24} height={24} />
-              </Link>
-              <div className={`${userId ? "" : "hidden"} absolute w-[13px] h-[13px] text-[9px] rounded-[100%] top-[10px] right-[5px] bg-black text-white flex items-center justify-center`}>{carts?.data.totalQuantity}</div>
-            </div>
-            <div className="items-center hidden lg:flex col-start-2 row-start-1 lg:col-start-3">
+              </div>
+              <div className={`${carts ? "" : "hidden"} absolute w-[13px] h-[13px] text-[9px] rounded-[100%] top-[10px] right-[5px] bg-black text-white flex items-center justify-center`}>{carts?.data.totalQuantity ? carts?.data.totalQuantity : 0}</div>
+            </Link>
+            <Link to={`/account/wishlist`} className="items-center hidden lg:flex col-start-2 row-start-1 lg:col-start-3">
               <a href="" className='w-[40px] h-[40px] flex justify-center items-center text-center'>
                 <img className=" ls-is-cached lazyloaded" src="	https://file.hstatic.net/200000642007/file/icon-wishlist_86d7262a56ae455fa531e6867655996d.svg" data-src="	https://file.hstatic.net/200000642007/file/icon-wishlist_86d7262a56ae455fa531e6867655996d.svg" alt="Icon cart" width={24} height={24} />
               </a>
-            </div>
-            <div className="flex items-center col-start-2 row-start-1 lg:col-start-4">
+            </Link>
+            <Link to={`/account`} className="flex items-center col-start-2 row-start-1 lg:col-start-4">
               <a href="" className='w-[40px] h-[40px] flex justify-center items-center text-center'>
                 <img className=" ls-is-cached lazyloaded" src="https://file.hstatic.net/200000642007/file/icon-account_5d386c88832c4872b857c0da62a81bbc.svg" data-src="https://file.hstatic.net/200000642007/file/icon-account_5d386c88832c4872b857c0da62a81bbc.svg" alt="Icon account" width={24} height={24} />
               </a>
-            </div>
+            </Link>
           </div>
         </div>
       </header>
